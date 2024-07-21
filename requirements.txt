@@ -1,0 +1,8 @@
+certifi==2024.7.4
+charset-normalizer==3.3.2
+idna==3.7
+psycopg==3.2.1
+psycopg-binary==3.2.1
+requests==2.32.3
+typing_extensions==4.12.2
+urllib3==2.2.2
