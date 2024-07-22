@@ -1,5 +1,8 @@
 import psycopg
 import os
+from psycopg_pool import ConnectionPool
+
+DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/fpl_db"
 
 
 def db_connection():
@@ -16,6 +19,9 @@ def db_connection():
     )
 
     return connection
+
+
+pool = ConnectionPool(conninfo=DATABASE_URL)
 
 
 def create_players_table():
