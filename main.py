@@ -1,16 +1,32 @@
-# This is a sample Python script.
+from typing import List
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+from fastapi import FastAPI, Depends
+from pydantic import BaseModel
+from db_config import pool
+from psycopg.rows import dict_row
+
+app = FastAPI()
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+class Player(BaseModel):
+    first_name: str
+    second_name: str
+    now_cost: int
+    player_id: int
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+@app.get("/")
+async def root():
+    return {"Root": "API"}
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+@app.get("/players/", response_model=List[Player])
+async def get_players():
+    query = "SELECT * FROM players"
+    with pool.connection() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(query)
+            records = cur.fetchall()
+    return records
+
+
