@@ -1,18 +1,21 @@
 from typing import List
-
+from sqlalchemy.orm import Session
 from fastapi import FastAPI, Depends
-from pydantic import BaseModel
-from db_config import pool
-from psycopg.rows import dict_row
+from players import models, crud, schemas
+from players.database import SessionLocal, engine
+
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 
-class Player(BaseModel):
-    first_name: str
-    second_name: str
-    now_cost: int
-    player_id: int
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @app.get("/")
@@ -20,13 +23,11 @@ async def root():
     return {"Root": "API"}
 
 
-@app.get("/players/", response_model=List[Player])
-async def get_players():
-    query = "SELECT * FROM players"
-    with pool.connection() as conn:
-        with conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(query)
-            records = cur.fetchall()
-    return records
+@app.get("/players", response_model=list[schemas.PlayerSchema])
+def get_players(db: Session = Depends(get_db)):
+    players = crud.get_players(db)
+    return players
+
+
 
 
