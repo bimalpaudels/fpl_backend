@@ -34,7 +34,7 @@ def create_players_table():
     query = """
     CREATE TABLE IF NOT EXISTS players (
     id SERIAL PRIMARY KEY,
-    player_id INTEGER,
+    player_id INTEGER UNIQUE,
     first_name VARCHAR(100),
     second_name VARCHAR(100),
     now_cost INTEGER
