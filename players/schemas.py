@@ -9,3 +9,14 @@ class PlayerSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class PlayersDetailSchema(BaseModel):
+    player_id: int
+    game_week: int
+    goals: int
+    assists: int
+    total_points: int
+
+    class Config:
+        orm_mode = True
