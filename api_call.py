@@ -136,7 +136,7 @@ def upsert_player_stats_by_gw(player_data):
         action_type, changed_data = verify_player_gw_exists(data)
         # If it doesn't exist execute CREATE
         if action_type == ActionType.CREATE:
-            query = """INSERT INTO players_gw_detail (player_id, game_week, goals, assists, total_points) VALUES (%s, %s, %s, %s, %s)"""
+            query = """INSERT INTO players_detail (player_id, game_week, goals, assists, total_points) VALUES (%s, %s, %s, %s, %s)"""
             values = (data.get('player_id'), data.get('game_week'), data.get('goals'), data.get('assists'),
                       data.get('total_points'))
             with db_connection() as conn:
@@ -154,7 +154,7 @@ def verify_player_gw_exists(player_data) -> Tuple[ActionType, Optional[dict]]:
     player_id = player_data.get("player_id")
     game_week = player_data.get("game_week")
 
-    query = """SELECT * FROM players_gw_detail WHERE player_id =%s AND game_week =%s"""
+    query = """SELECT * FROM players_detail WHERE player_id =%s AND game_week =%s"""
     with db_connection() as conn:
         data = conn.execute(query, (player_id, game_week)).fetchone()
     if data is None:

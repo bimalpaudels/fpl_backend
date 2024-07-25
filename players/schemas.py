@@ -20,3 +20,10 @@ class PlayersDetailSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class PlayerDetailResponse(PlayerSchema):
+    details: list[PlayersDetailSchema]
+
+    class Config:
+        orm_mode = True
