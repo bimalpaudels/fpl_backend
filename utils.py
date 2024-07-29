@@ -5,16 +5,30 @@ def filter_required_attributes(players_data):
     :return: List of dictionaries of players with filtered attributes only
     """
     filtered_players = [
-        {
-            'player_id': player["id"],
-            'first_name': player['first_name'],
-            'second_name': player['second_name'],
-            'now_cost': player['now_cost'],
-
-        }
-        for player in players_data
+        rename_keys(player) for player in players_data
     ]
     return filtered_players
+
+
+def rename_keys(player):
+    player['player_id'] = player.pop('id')
+    player['expected_goals_involvement'] = player.pop('expected_goal_involvements')
+    player['expected_goals_involvements_per_90'] = player.pop('expected_goal_involvements_per_90')
+    columns_to_remove = ["chance_of_playing_next_round", "chance_of_playing_this_round", "code", "cost_change_event",
+                         "cost_change_event_fall", "cost_change_start", "cost_change_start_fall", "dreamteam_count",
+                         "element_type", "ep_next", "ep_this", "event_points", "in_dreamteam", "news", "news_added",
+                         "photo", "special", "squad_number", "status", "team", "team_code", "transfers_in", "transfers_in_event",
+                         "transfers_out", "transfers_out_event", "value_form", "value_season", "web_name", "influence_rank",
+                         "influence_rank_type", "creativity_rank", "creativity_rank_type", "threat_rank", "threat_rank_type",
+                         "ict_index_rank", "ict_index_rank_type", "corners_and_indirect_freekicks_order",
+                         "corners_and_indirect_freekicks_text", "direct_freekicks_order", "direct_freekicks_text",
+                         "penalties_order", "penalties_text", "now_cost_rank", "now_cost_rank_type", "form_rank", "form_rank_type",
+                         "points_per_game_rank", "points_per_game_rank_type", "selected_rank", "selected_rank_type", "starts_per_90",
+                         "clean_sheets_per_90"]
+    for column in columns_to_remove:
+        if column in player:
+            player.pop(column)
+    return player
 
 
 HISTORY_DATA = [
