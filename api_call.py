@@ -56,8 +56,10 @@ def upsert_players(players):
         action, changed_data = verify_player_exists(player)
 
         if action == ActionType.CREATE:
-            query = """INSERT INTO players (player_id, first_name, second_name, now_cost) VALUES (%s, %s, %s, %s)"""
-            values = (player.get('player_id'), player.get('first_name'), player.get('second_name'), player.get('now_cost'))
+            columns = ', '.join(player.keys())
+            placeholders = ', '.join(['%s'] * len(player))
+            values = tuple(player.values())
+            query = f"INSERT INTO players ({columns})VALUES ({placeholders})"
             with db_connection() as conn:
                 conn.execute(query, values)
             inserted_count += 1
@@ -164,5 +166,5 @@ def verify_player_gw_exists(player_data) -> Tuple[ActionType, Optional[dict]]:
 
 
 if __name__ == "__main__":
-    # get_bootstrap_api()
-    get_player_stats_by_gw()
+    get_bootstrap_api()
+    # get_player_stats_by_gw()
