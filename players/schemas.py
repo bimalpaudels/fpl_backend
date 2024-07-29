@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional
 
 
 class PlayerSchema(BaseModel):
@@ -27,3 +28,11 @@ class PlayerDetailResponse(PlayerSchema):
 
     class Config:
         orm_mode = True
+
+
+class PlayerSelectedPercentageSchema(PlayerSchema):
+    model_config = ConfigDict(from_attributes=True)
+
+    selected_by_percent: Optional[float] = None
+    total_points: Optional[int] = None
+    expected_goals: Optional[float] = None
