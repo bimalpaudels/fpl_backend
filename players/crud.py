@@ -18,4 +18,3 @@ def get_players_details(db: Session, player_id: int):
 def get_top_5(db: Session, category: str):
     players = db.query(models.Player).order_by(desc(category)).limit(5)
     return players
-
