@@ -36,3 +36,15 @@ class PlayerSelectedPercentageSchema(PlayerSchema):
     selected_by_percent: Optional[float] = None
     total_points: Optional[int] = None
     expected_goals: Optional[float] = None
+    expected_assists: Optional[float] = None
+    threat: Optional[float] = None
+
+
+class PlayerBasicSchema(PlayerSchema):
+    model_config = ConfigDict(from_attributes=True)
+    
+    goals_scored: Optional[int] = None
+    assists: Optional[int] = None
+    own_goals: Optional[int] = None
+    yellow_cards: Optional[int] = None
+    red_cards: Optional[int] = None
