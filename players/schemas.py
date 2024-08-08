@@ -48,3 +48,21 @@ class PlayerBasicSchema(PlayerSchema):
     own_goals: Optional[int] = None
     yellow_cards: Optional[int] = None
     red_cards: Optional[int] = None
+
+
+class PlayerListResponseSchema(PlayerSchema):
+    model_config = ConfigDict(from_attributes=True)
+
+    minutes: int
+    total_points: int
+    goals_scored: int
+    assists: int
+    clean_sheets: int
+    goals_conceded: int
+    own_goals: int
+    penalties_saved: int
+    penalties_missed: int
+    yellow_cards: int
+    red_cards: int
+    saves: int
+    bonus: int
