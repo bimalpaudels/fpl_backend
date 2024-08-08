@@ -15,9 +15,29 @@ class PlayerSchema(BaseModel):
 class PlayersDetailSchema(BaseModel):
     player_id: int
     game_week: int
-    goals: int
     assists: int
     total_points: int
+    minutes: int
+    goals_scored: int
+    assists: int
+    clean_sheet: int
+    goals_conceded: int
+    own_goals: int
+    penalties_saved: int
+    penalties_missed: int
+    yellow_cards: int
+    red_cards: int
+    saves: int
+    bonus: int
+    bps: int
+    influence: float
+    creativity: float
+    threat: float
+    ict_index: float
+    value: int
+    selected: int
+    transfers_in: int
+    transfers_out: int
 
     class Config:
         orm_mode = True

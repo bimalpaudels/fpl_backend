@@ -1,7 +1,7 @@
 import enum
 import requests
 from db_config import db_connection
-from utils import filter_required_attributes, HISTORY_DATA, filtered_players_details, player_history_mock_data
+from utils import filter_required_attributes, filtered_players_details, player_history_mock_data
 from typing import Tuple, Optional
 from psycopg.rows import dict_row
 
@@ -138,9 +138,10 @@ def upsert_player_stats_by_gw(player_data):
         action_type, changed_data = verify_player_gw_exists(data)
         # If it doesn't exist execute CREATE
         if action_type == ActionType.CREATE:
-            query = """INSERT INTO players_detail (player_id, game_week, goals, assists, total_points) VALUES (%s, %s, %s, %s, %s)"""
-            values = (data.get('player_id'), data.get('game_week'), data.get('goals'), data.get('assists'),
-                      data.get('total_points'))
+            columns = ', '.join(data.keys())
+            placeholders = ', '.join(['%s'] * len(data))
+            values = tuple(data.values())
+            query = f"INSERT INTO players_detail ({columns})VALUES ({placeholders})"
             with db_connection() as conn:
                 conn.execute(query, values)
             inserted_count += 1
@@ -166,5 +167,5 @@ def verify_player_gw_exists(player_data) -> Tuple[ActionType, Optional[dict]]:
 
 
 if __name__ == "__main__":
-    get_bootstrap_api()
-    # get_player_stats_by_gw()
+    # get_bootstrap_api()
+    get_player_stats_by_gw()
