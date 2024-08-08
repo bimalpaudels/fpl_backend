@@ -5,13 +5,12 @@ from players import models, schemas
 from sqlalchemy import desc, asc
 
 
-def get_players(db: Session):
-    return db.query(models.Player).all()
+def get_players(db: Session, skip: int = 0, limit: int = 20):
+    return db.query(models.Player).offset(skip).limit(limit).all()
 
 
 def get_players_details(db: Session, player_id: int):
-    player = db.query(models.Player).get(player_id == player_id)
-    # player_details = player.
+    player = db.query(models.Player).get(player_id)
     return player
 
 

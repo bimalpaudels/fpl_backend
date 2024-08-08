@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from players import models, crud, schemas
 from players.database import SessionLocal, engine
 from players.schemas import (PlayerBasicSchema, PlayerSelectedPercentageSchema,
-                             PlayersDetailSchema, PlayerDetailResponse)
+                             PlayersDetailSchema, PlayerDetailResponse, PlayerListResponseSchema)
 from fastapi.responses import JSONResponse
 from typing import Dict
 
@@ -26,9 +26,9 @@ async def root():
     return {"Root": "API"}
 
 
-@app.get("/players", response_model=list[schemas.PlayerSchema])
-def get_players(db: Session = Depends(get_db)):
-    players = crud.get_players(db)
+@app.get("/players", response_model=list[PlayerListResponseSchema])
+def get_players(db: Session = Depends(get_db), skip: int = 0, limit: int = 20):
+    players = crud.get_players(db=db, skip=skip, limit=limit)
     return players
 
 
