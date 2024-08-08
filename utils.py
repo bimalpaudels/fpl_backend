@@ -31,56 +31,18 @@ def rename_keys(player):
     return player
 
 
-HISTORY_DATA = [
-    {
-        "element": 183,
-        "round": 1,
-        "goals": 1,
-        "assists": 0,
-        "total_points": 10
-    },
-    {
-        "element": 183,
-        "round": 2,
-        "goals": 0,
-        "assists": 1,
-        "total_points": 5
-    },
-    {
-        "element": 183,
-        "round": 3,
-        "goals": 0,
-        "assists": 0,
-        "total_points": 2
-    },
-    {
-        "element": 182,
-        "round": 4,
-        "goals": 2,
-        "assists": 0,
-        "total_points": 13
-    },
-    {
-        "element": 182,
-        "round": 5,
-        "goals": 3,
-        "assists": 0,
-        "total_points": 20
-    },
-]
-
-
 def filtered_players_details(history_data):
     filtered_players = [
-        {"player_id": data.get('element'),
-         "game_week": data.get('round'),
-         "goals": data.get('goals'),
-         "assists": data.get('assists'),
-         "total_points": data.get('total_points')
-         }
-        for data in history_data
+        rename_gw_attributes(player) for player in history_data
     ]
     return filtered_players
+
+
+def rename_gw_attributes(gw_data):
+    gw_data['player_id'] = gw_data.pop('element')
+    gw_data['game_week'] = gw_data.pop('round')
+
+    return gw_data
 
 
 def player_history_mock_data(player_id):
@@ -89,44 +51,237 @@ def player_history_mock_data(player_id):
         {
             "element": player_id,
             "round": 1,
-            "goals": 1,
+            "goals_scored": 1,
             "assists": 0,
-            "total_points": 10
+            "total_points": 10,
+            "minutes": 90,
+            "clean_sheet": 1,
+            "goals_conceded": 0,
+            "own_goals": 0,
+            "penalties_saved": 0,
+            "penalties_missed": 0,
+            "yellow_cards": 1,
+            "red_cards": 0,
+            "saves": 0,
+            "bonus": 2,
+            "bps": 22,
+            "influence": 36.6,
+            "creativity": 15.3,
+            "threat": 54.0,
+            "ict_index": 10.6,
+            "value": 120,
+            "selected": 283747,
+            "transfers_in": 0,
+            "transfers_out": 0
         },
         {
             "element": player_id,
-            "round": 2,
-            "goals": 0,
+            "round": 1,
+            "goals_scored": 0,
             "assists": 1,
-            "total_points": 5
+            "total_points": 6,
+            "minutes": 80,
+            "clean_sheet": 1,
+            "goals_conceded": 0,
+            "own_goals": 0,
+            "penalties_saved": 0,
+            "penalties_missed": 0,
+            "yellow_cards": 1,
+            "red_cards": 0,
+            "saves": 0,
+            "bonus": 2,
+            "bps": 22,
+            "influence": 36.6,
+            "creativity": 15.3,
+            "threat": 54.0,
+            "ict_index": 10.6,
+            "value": 120,
+            "selected": 283747,
+            "transfers_in": 0,
+            "transfers_out": 0
         },
         {
             "element": player_id,
-            "round": 3,
-            "goals": 0,
+            "round": 1,
+            "goals_scored": 1,
             "assists": 0,
-            "total_points": 2
+            "total_points": 12,
+            "minutes": 70,
+            "clean_sheet": 1,
+            "goals_conceded": 0,
+            "own_goals": 0,
+            "penalties_saved": 0,
+            "penalties_missed": 0,
+            "yellow_cards": 1,
+            "red_cards": 0,
+            "saves": 0,
+            "bonus": 2,
+            "bps": 22,
+            "influence": 36.6,
+            "creativity": 15.3,
+            "threat": 54.0,
+            "ict_index": 10.6,
+            "value": 120,
+            "selected": 283747,
+            "transfers_in": 0,
+            "transfers_out": 0
         },
         {
             "element": player_id,
-            "round": 4,
-            "goals": 2,
+            "round": 1,
+            "goals_scored": 1,
             "assists": 0,
-            "total_points": 13
+            "total_points": 10,
+            "minutes": 90,
+            "clean_sheet": 1,
+            "goals_conceded": 0,
+            "own_goals": 0,
+            "penalties_saved": 0,
+            "penalties_missed": 0,
+            "yellow_cards": 1,
+            "red_cards": 0,
+            "saves": 4,
+            "bonus": 2,
+            "bps": 22,
+            "influence": 36.6,
+            "creativity": 15.3,
+            "threat": 54.0,
+            "ict_index": 10.6,
+            "value": 120,
+            "selected": 283747,
+            "transfers_in": 0,
+            "transfers_out": 0
         },
         {
             "element": player_id,
-            "round": 5,
-            "goals": 3,
+            "round": 1,
+            "goals_scored": 1,
             "assists": 0,
-            "total_points": 20
+            "total_points": 10,
+            "minutes": 90,
+            "clean_sheet": 1,
+            "goals_conceded": 0,
+            "own_goals": 0,
+            "penalties_saved": 0,
+            "penalties_missed": 3,
+            "yellow_cards": 1,
+            "red_cards": 0,
+            "saves": 0,
+            "bonus": 2,
+            "bps": 22,
+            "influence": 36.6,
+            "creativity": 15.3,
+            "threat": 54.0,
+            "ict_index": 10.6,
+            "value": 120,
+            "selected": 283747,
+            "transfers_in": 0,
+            "transfers_out": 0
         },
         {
             "element": player_id,
-            "round": 6,
-            "goals": 1,
-            "assists": 1,
-            "total_points": 10
+            "round": 1,
+            "goals_scored": 1,
+            "assists": 0,
+            "total_points": 10,
+            "minutes": 90,
+            "clean_sheet": 1,
+            "goals_conceded": 0,
+            "own_goals": 0,
+            "penalties_saved": 0,
+            "penalties_missed": 0,
+            "yellow_cards": 1,
+            "red_cards": 0,
+            "saves": 0,
+            "bonus": 2,
+            "bps": 22,
+            "influence": 36.6,
+            "creativity": 14.3,
+            "threat": 54.0,
+            "ict_index": 10.6,
+            "value": 120,
+            "selected": 283747,
+            "transfers_in": 0,
+            "transfers_out": 0
         },
+        {
+            "element": player_id,
+            "round": 1,
+            "goals_scored": 1,
+            "assists": 0,
+            "total_points": 10,
+            "minutes": 10,
+            "clean_sheet": 1,
+            "goals_conceded": 0,
+            "own_goals": 0,
+            "penalties_saved": 0,
+            "penalties_missed": 0,
+            "yellow_cards": 1,
+            "red_cards": 0,
+            "saves": 0,
+            "bonus": 2,
+            "bps": 22,
+            "influence": 36.6,
+            "creativity": 15.3,
+            "threat": 54.0,
+            "ict_index": 10.6,
+            "value": 120,
+            "selected": 283747,
+            "transfers_in": 0,
+            "transfers_out": 0
+        },
+        {
+            "element": player_id,
+            "round": 1,
+            "goals_scored": 1,
+            "assists": 0,
+            "total_points": 10,
+            "minutes": 80,
+            "clean_sheet": 1,
+            "goals_conceded": 0,
+            "own_goals": 0,
+            "penalties_saved": 0,
+            "penalties_missed": 0,
+            "yellow_cards": 1,
+            "red_cards": 0,
+            "saves": 0,
+            "bonus": 2,
+            "bps": 22,
+            "influence": 36.6,
+            "creativity": 15.3,
+            "threat": 54.0,
+            "ict_index": 10.6,
+            "value": 120,
+            "selected": 283747,
+            "transfers_in": 0,
+            "transfers_out": 0
+        },
+        {
+            "element": player_id,
+            "round": 1,
+            "goals_scored": 11,
+            "assists": 0,
+            "total_points": 10,
+            "minutes": 80,
+            "clean_sheet": 1,
+            "goals_conceded": 0,
+            "own_goals": 0,
+            "penalties_saved": 0,
+            "penalties_missed": 0,
+            "yellow_cards": 1,
+            "red_cards": 0,
+            "saves": 0,
+            "bonus": 2,
+            "bps": 22,
+            "influence": 36.6,
+            "creativity": 15.3,
+            "threat": 54.0,
+            "ict_index": 10.6,
+            "value": 120,
+            "selected": 2223747,
+            "transfers_in": 0,
+            "transfers_out": 0
+        },
+
     ]
     return historical_data
