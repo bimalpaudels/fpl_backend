@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from players import models, crud, schemas
 from players.database import SessionLocal, engine
 from players.schemas import (PlayerBasicSchema, PlayerSelectedPercentageSchema,
-                             PlayersDetailSchema, PlayerDetailResponse, PlayerListResponseSchema)
+                             PlayersDetailSchema, PlayerDetailResponse, PlayerListResponseSchema,  PlayerCompleteSchema)
 from fastapi.responses import JSONResponse
 from typing import Dict
 
