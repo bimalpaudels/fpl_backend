@@ -44,6 +44,10 @@ class Player(Base):
     goals_conceded_per_90 = Column(Float, default=0)
     points_per_game = Column(Float, default=0.0, nullable=True)
 
+    position = Column(Integer, default=0)
+    team = Column(Integer, default=1)
+    web_name = Column(String)
+
     details = relationship('PlayersDetail', back_populates='player', cascade='all, delete-orphan')
 
 

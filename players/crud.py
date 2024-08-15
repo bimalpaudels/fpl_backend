@@ -5,8 +5,12 @@ from players import models, schemas
 from sqlalchemy import desc, asc
 
 
-def get_players(db: Session, skip: int = 0, limit: int = 20):
-    return db.query(models.Player).offset(skip).limit(limit).all()
+def get_players(db: Session, skip: int = 0, limit: int = 20, sort: str = "total_points", dir: int = -1):
+    order = desc(sort)
+    if dir == 1:
+        order = asc(sort)
+
+    return db.query(models.Player).order_by(order).offset(skip).limit(limit).all()
 
 
 def get_players_details(db: Session, player_id: int):

@@ -1,7 +1,6 @@
-from pydantic import BaseModel, Field, ConfigDict, model_serializer, field_serializer
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from typing import Optional
-
-from players.models import Player
+from players.utils import player_position, get_team
 
 
 class PlayerSchema(BaseModel):
@@ -109,14 +108,19 @@ class PlayerCompleteSchema(BaseModel):
     goals_conceded_per_90: float
     points_per_game: float
 
+    position: int = Field(..., alias='element_type')
+    team: int
+    web_name: str
+
 
 class PlayerListResponseSchema(PlayerCompleteSchema):
     model_config = ConfigDict(from_attributes=True)
-
     player_id: int
     expected_goals_involvement: float
     expected_goals_involvements_per_90: float
     full_name: Optional[str] = None
+    position: int
+    team: int
 
     @property
     def get_full_name(self) -> str:
@@ -125,3 +129,16 @@ class PlayerListResponseSchema(PlayerCompleteSchema):
     @field_serializer('full_name')
     def serialize_full_name(self, _) -> str:
         return self.get_full_name
+
+    @field_serializer('position')
+    def serialize_position(self, _) -> str:
+        return player_position(self.position)
+
+    @field_serializer('team')
+    def serialize_team(self, _) -> str:
+        return get_team(self.team)
+
+    @field_serializer('now_cost')
+    def serialize_now_cost(self, _) -> float:
+        cost = self.now_cost
+        return cost/10
