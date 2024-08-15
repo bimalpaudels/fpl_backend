@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from players import models, crud, schemas
 from players.database import SessionLocal, engine
 from players.schemas import (PlayerBasicSchema, PlayerSelectedPercentageSchema,
@@ -11,6 +12,14 @@ from typing import Dict
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def get_db():
@@ -27,8 +36,8 @@ async def root():
 
 
 @app.get("/players", response_model=list[PlayerListResponseSchema])
-def get_players(db: Session = Depends(get_db), skip: int = 0, limit: int = 20):
-    players = crud.get_players(db=db, skip=skip, limit=limit)
+def get_players(db: Session = Depends(get_db), skip: int = 0, limit: int = 50, sort: str = "total_points", dir: int = -1):
+    players = crud.get_players(db=db, skip=skip, limit=limit, sort=sort, dir=dir)
     return players
 
 
