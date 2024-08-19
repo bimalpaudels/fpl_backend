@@ -70,10 +70,11 @@ def get_top_five_selected(category: str, db: Session = Depends(get_db)):
 
 @app.get("/top-five-combined", response_model=Dict[str, list[PlayerSelectedPercentageSchema]])
 def get_top_five_combined(db: Session = Depends(get_db)):
-    categories = ['total_points', 'selected_by_percent', 'expected_goals', "expected_assists", "threat"]
+    categories = ['total_points', 'selected_by_percent', 'expected_goals', "expected_assists", "points_per_game",
+                  "expected_goals_involvement", "expected_goals_conceded", "expected_goals_per_90", "expected_assists_per_90", "threat"]
     resp = {}
     for category in categories:
-        players = crud.get_top_5(db=db, category=category)
+        players = crud.get_top_5(db=db, category=category, limit=6)
         players_schemas = [PlayerSelectedPercentageSchema.model_validate(player).model_dump()
                            for player in players]
         resp[category] = players_schemas
@@ -83,10 +84,10 @@ def get_top_five_combined(db: Session = Depends(get_db)):
 
 @app.get("/top-five-basics", response_model=Dict[str, list[PlayerBasicSchema]])
 def get_top_basic(db: Session = Depends(get_db)):
-    categories = ["goals_scored", "assists", "own_goals", "yellow_cards", "red_cards"]
+    categories = ["goals_scored", "assists", "own_goals", "yellow_cards", "red_cards", "minutes", "clean_sheets"]
     response = dict()
     for category in categories:
-        players = crud.get_top_5(db=db, category=category)
+        players = crud.get_top_5(db=db, category=category, limit=3)
         players_schemas = [PlayerBasicSchema.model_validate(player).model_dump()
                            for player in players]
         response[category] = players_schemas

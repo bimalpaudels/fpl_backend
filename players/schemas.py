@@ -10,6 +10,7 @@ class PlayerSchema(BaseModel):
     second_name: str
     now_cost: int
     player_id: int
+    web_name: str
 
 
 class PlayersDetailSchema(BaseModel):
@@ -22,7 +23,7 @@ class PlayersDetailSchema(BaseModel):
     minutes: int
     goals_scored: int
     assists: int
-    clean_sheet: int
+    clean_sheet: int = Field(..., alias='clean_sheets')
     goals_conceded: int
     own_goals: int
     penalties_saved: int
@@ -56,6 +57,11 @@ class PlayerSelectedPercentageSchema(PlayerSchema):
     expected_goals: Optional[float] = None
     expected_assists: Optional[float] = None
     threat: Optional[float] = None
+    points_per_game: Optional[float] = None
+    expected_goals_involvement: Optional[float] = None
+    expected_goals_per_90: Optional[float] = None
+    expected_assists_per_90: Optional[float] = None
+    expected_goals_conceded: Optional[float] = None
 
 
 class PlayerBasicSchema(PlayerSchema):
@@ -66,6 +72,8 @@ class PlayerBasicSchema(PlayerSchema):
     own_goals: Optional[int] = None
     yellow_cards: Optional[int] = None
     red_cards: Optional[int] = None
+    clean_sheets: Optional[int] = None
+    minutes: Optional[int] = None
 
 
 class PlayerCompleteSchema(BaseModel):

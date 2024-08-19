@@ -137,18 +137,18 @@ def get_player_stats_by_gw():
     with db_connection() as conn:
         results = conn.execute(query).fetchone()
     player_ids = results[0]
-    for i in range(0, len(player_ids),  50):
-        chunk = player_ids[i:i+50]
+    for i in range(0, len(player_ids),  60):
+        chunk = player_ids[i:i+60]
         for player_id in chunk:
-            # data = call_player_detail_api(player_id)
+            data = call_player_detail_api(player_id)
 
             # data and  player_ids will be used in the future
-            history = player_history_mock_data(player_id)
-            filtered_player_data = filtered_players_details(history)
+            # history = player_history_mock_data(player_id)
+            filtered_player_data = filtered_players_details(data)
             upsert_player_stats_by_gw(filtered_player_data)
-        print("Waiting 100 seconds...")
-        time.sleep(1)
-
+            time.sleep(1)
+        print("Waiting 60 seconds...")
+        time.sleep(60)
     return True
 
 
