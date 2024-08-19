@@ -1,14 +1,23 @@
 import enum
 import time
+import json
+from datetime import datetime
 
+import redis
 import requests
 from db_config import db_connection
 from utils import validated_required_attributes, filtered_players_details, player_history_mock_data
 from typing import Tuple, Optional
 from psycopg.rows import dict_row
+from players.utils import calculate_hash
+
 
 BASE_URL = 'https://fantasy.premierleague.com/api/'
 TRACKED_FIELDS = ['now_cost', 'second_name']
+
+
+# Redis Connection
+r = redis.Redis(host='localhost', port=6379, db=0)
 
 
 class ActionType(enum.Enum):
@@ -59,7 +68,17 @@ def get_players():
     Function to get all players data calling the call_bootstrap_api function and insert into local database.
     :return: Currently only returns success message on console.
     """
-    players = call_bootstrap_api()
+    all_players_cache_key = "remote:players"
+    players = r.get(all_players_cache_key)
+    # print(players)
+    if players:
+        print("Data retrieved from cache")
+        players = json.loads(players)
+    else:
+        print("Data fetched from remote and cached")
+        players = call_bootstrap_api()
+        r.setex(all_players_cache_key, 300, json.dumps(players))
+
     filtered_players_data = validated_required_attributes(players)
     upsert_players(filtered_players_data)
     # Clean players to only take data required.
@@ -95,6 +114,7 @@ def upsert_players(players):
             with db_connection() as conn:
                 conn.execute(query, values)
             updated_count += 1
+            print(changed_data, player['player_id'], player['first_name'])
 
         else:
             unchanged_count += 1
@@ -115,15 +135,17 @@ def verify_player_exists(player_detail) -> Tuple[ActionType, Optional[dict]]:
 
     if record is None:
         return ActionType.CREATE, None
+
+    if player_detail['hash_value'] == record['hash_value']:
+        return ActionType.NO_ACTION, None
+
     changed_values = {}
 
     for key, value in player_detail.items():
         if value != record.get(key):
             changed_values[key] = value
-    if changed_values:
-        return ActionType.UPDATE, changed_values
 
-    return ActionType.NO_ACTION, None
+    return ActionType.UPDATE, changed_values
 
 
 def get_player_stats_by_gw():
@@ -213,12 +235,14 @@ def verify_player_gw_exists(player_data) -> Tuple[ActionType, Optional[dict]]:
 
 if __name__ == "__main__":
     try:
+        start_time = datetime.now()
         if get_players():
-            print("Successfully loaded players from remote.")
-        if get_player_stats_by_gw():
-            print("Successfully loaded individual gw data.")
+            print("Successfully loaded players.")
+        # if get_player_stats_by_gw():
+        #     print("Successfully loaded individual gw data.")
         print("Scripts executed!!!")
-
+        end_time = datetime.now()
+        print(f"Script execution time: " + str(end_time - start_time))
     except Exception as e:
         print(e)
 

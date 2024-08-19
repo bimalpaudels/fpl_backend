@@ -48,6 +48,8 @@ class Player(Base):
     team = Column(Integer, default=1)
     web_name = Column(String)
 
+    hash_value = Column(String)
+
     details = relationship('PlayersDetail', back_populates='player', cascade='all, delete-orphan')
 
 
