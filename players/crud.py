@@ -10,7 +10,7 @@ def get_players(db: Session, skip: int = 0, limit: int = 20, sort: str = "total_
     if dir == 1:
         order = asc(sort)
 
-    return db.query(models.Player).order_by(order).offset(skip).limit(limit).all()
+    return db.query(models.Player).order_by(order, "web_name").offset(skip).limit(limit).all()
 
 
 def get_players_details(db: Session, player_id: int):
@@ -18,6 +18,6 @@ def get_players_details(db: Session, player_id: int):
     return player
 
 
-def get_top_5(db: Session, category: str):
-    players = db.query(models.Player).order_by(desc(category)).limit(5)
+def get_top_5(db: Session, category: str, limit: int = 6):
+    players = db.query(models.Player).order_by(desc(category)).limit(limit)
     return players
