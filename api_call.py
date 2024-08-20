@@ -68,20 +68,20 @@ def get_players():
     Function to get all players data calling the call_bootstrap_api function and insert into local database.
     :return: Currently only returns success message on console.
     """
-    all_players_cache_key = "remote:players"
-    players = r.get(all_players_cache_key)
-    # print(players)
-    if players:
-        print("Data retrieved from cache")
-        players = json.loads(players)
-    else:
-        print("Data fetched from remote and cached")
-        players = call_bootstrap_api()
-        r.setex(all_players_cache_key, 300, json.dumps(players))
-
+    players = call_bootstrap_api()
+    # Check hash with cache
     filtered_players_data = validated_required_attributes(players)
+
+    players_hash_key = "players:hash"
+    cache_hash = r.get(players_hash_key)
+    if cache_hash is not None:
+        cache_hash = cache_hash.decode('utf-8')
+    latest_data_hash = calculate_hash(filtered_players_data)
+    if cache_hash == latest_data_hash:
+        print("Nothing to change")
+        return
+    r.setex(players_hash_key, 60, latest_data_hash)
     upsert_players(filtered_players_data)
-    # Clean players to only take data required.
     return True
 
 
