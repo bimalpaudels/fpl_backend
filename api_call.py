@@ -5,7 +5,7 @@ from datetime import datetime
 
 import redis
 import requests
-from db_config import db_connection
+from db_config import db_connection, pool
 from utils import validated_required_attributes, filtered_players_details, player_history_mock_data
 from typing import Tuple, Optional
 from psycopg.rows import dict_row
@@ -95,57 +95,61 @@ def upsert_players(players):
     updated_count = 0
     unchanged_count = 0
 
-    for player in players:
-        action, changed_data = verify_player_exists(player)
+    with pool.connection() as conn:
+        for player in players:
+            action, changed_data = verify_player_exists(conn, player)
 
-        if action == ActionType.CREATE:
-            columns = ', '.join(player.keys())
-            placeholders = ', '.join(['%s'] * len(player))
-            values = tuple(player.values())
-            query = f"INSERT INTO players ({columns})VALUES ({placeholders})"
-            with db_connection() as conn:
+            if action == ActionType.CREATE:
+                columns = ', '.join(player.keys())
+                placeholders = ', '.join(['%s'] * len(player))
+                values = tuple(player.values())
+                query = f"INSERT INTO players ({columns})VALUES ({placeholders})"
+
                 conn.execute(query, values)
-            inserted_count += 1
+                inserted_count += 1
 
-        elif action == ActionType.UPDATE:
-            set_clause = ", ".join(f"{key} = %s" for key in changed_data.keys())
-            values = list(changed_data.values()) + [player['player_id']]
-            query = f"UPDATE players SET {set_clause} WHERE player_id =%s"
-            with db_connection() as conn:
+            elif action == ActionType.UPDATE:
+                set_clause = ", ".join(f"{key} = %s" for key in changed_data.keys())
+                values = list(changed_data.values()) + [player['player_id']]
+                query = f"UPDATE players SET {set_clause} WHERE player_id =%s"
+
                 conn.execute(query, values)
-            updated_count += 1
-            print(changed_data, player['player_id'], player['first_name'])
+                updated_count += 1
+                # print(changed_data, player['player_id'], player['first_name'])
 
-        else:
-            unchanged_count += 1
+            else:
+                unchanged_count += 1
 
     print(f"New Players: {inserted_count}, Updated: {updated_count}, Unchanged: {unchanged_count}")
 
 
-def verify_player_exists(player_detail) -> Tuple[ActionType, Optional[dict]]:
+def verify_player_exists(conn, player_detail) -> Tuple[ActionType, Optional[dict]]:
 
-    connection = db_connection()
+    # connection = db_connection()
     player_id = player_detail['player_id']
+    hash_query = """SELECT hash_value FROM players WHERE player_id =%s"""
+    full_query = """SELECT * FROM players WHERE player_id =%s"""
 
-    # Check if the player data exists in system
-    query = """SELECT * FROM players WHERE player_id =%s"""
-    with connection as conn:
-        with conn.cursor(row_factory=dict_row) as cursor:
-            record = cursor.execute(query, (player_id,)).fetchone()
+    with conn.cursor(row_factory=dict_row) as cursor:
+        record = cursor.execute(hash_query, (player_id,)).fetchone()
 
-    if record is None:
-        return ActionType.CREATE, None
+        if record is None:
+            return ActionType.CREATE, None
 
-    if player_detail['hash_value'] == record['hash_value']:
-        return ActionType.NO_ACTION, None
+        if player_detail['hash_value'] == record['hash_value']:
+            return ActionType.NO_ACTION, None
 
-    changed_values = {}
+        record = cursor.execute(full_query, (player_id,)).fetchone()
 
-    for key, value in player_detail.items():
-        if value != record.get(key):
-            changed_values[key] = value
+        changed_values = {}
 
-    return ActionType.UPDATE, changed_values
+        for key, value in player_detail.items():
+            # print(key, value, record.get(key))
+            if value != record.get(key):
+                print(key, value, record.get(key))
+                changed_values[key] = value
+
+        return ActionType.UPDATE, changed_values
 
 
 def get_player_stats_by_gw():
