@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, ConfigDict, field_serializer
+from pydantic import BaseModel, Field, ConfigDict, field_serializer, computed_field
 from typing import Optional
-from players.utils import player_position, get_team
+from players.utils import player_position, get_team, calculate_hash
 
 
 class PlayerSchema(BaseModel):
@@ -119,6 +119,13 @@ class PlayerCompleteSchema(BaseModel):
     position: int = Field(..., alias='element_type')
     team: int
     web_name: str
+
+    @computed_field
+    @property
+    def hash_value(self) -> str:
+
+        player_dict = self.model_dump(exclude={"hash_value"})
+        return calculate_hash(player_dict)
 
 
 class PlayerListResponseSchema(PlayerCompleteSchema):

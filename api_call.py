@@ -1,14 +1,23 @@
 import enum
 import time
+import json
+from datetime import datetime
 
+import redis
 import requests
-from db_config import db_connection
+from db_config import db_connection, pool
 from utils import validated_required_attributes, filtered_players_details, player_history_mock_data
 from typing import Tuple, Optional
 from psycopg.rows import dict_row
+from players.utils import calculate_hash
+
 
 BASE_URL = 'https://fantasy.premierleague.com/api/'
 TRACKED_FIELDS = ['now_cost', 'second_name']
+
+
+# Redis Connection
+r = redis.Redis(host='localhost', port=6379, db=0)
 
 
 class ActionType(enum.Enum):
@@ -60,9 +69,19 @@ def get_players():
     :return: Currently only returns success message on console.
     """
     players = call_bootstrap_api()
+    # Check hash with cache
     filtered_players_data = validated_required_attributes(players)
+
+    players_hash_key = "players:hash"
+    cache_hash = r.get(players_hash_key)
+    if cache_hash is not None:
+        cache_hash = cache_hash.decode('utf-8')
+    latest_data_hash = calculate_hash(filtered_players_data)
+    if cache_hash == latest_data_hash:
+        print("Nothing to change")
+        return
+    r.setex(players_hash_key, 60, latest_data_hash)
     upsert_players(filtered_players_data)
-    # Clean players to only take data required.
     return True
 
 
@@ -76,54 +95,61 @@ def upsert_players(players):
     updated_count = 0
     unchanged_count = 0
 
-    for player in players:
-        action, changed_data = verify_player_exists(player)
+    with pool.connection() as conn:
+        for player in players:
+            action, changed_data = verify_player_exists(conn, player)
 
-        if action == ActionType.CREATE:
-            columns = ', '.join(player.keys())
-            placeholders = ', '.join(['%s'] * len(player))
-            values = tuple(player.values())
-            query = f"INSERT INTO players ({columns})VALUES ({placeholders})"
-            with db_connection() as conn:
+            if action == ActionType.CREATE:
+                columns = ', '.join(player.keys())
+                placeholders = ', '.join(['%s'] * len(player))
+                values = tuple(player.values())
+                query = f"INSERT INTO players ({columns})VALUES ({placeholders})"
+
                 conn.execute(query, values)
-            inserted_count += 1
+                inserted_count += 1
 
-        elif action == ActionType.UPDATE:
-            set_clause = ", ".join(f"{key} = %s" for key in changed_data.keys())
-            values = list(changed_data.values()) + [player['player_id']]
-            query = f"UPDATE players SET {set_clause} WHERE player_id =%s"
-            with db_connection() as conn:
+            elif action == ActionType.UPDATE:
+                set_clause = ", ".join(f"{key} = %s" for key in changed_data.keys())
+                values = list(changed_data.values()) + [player['player_id']]
+                query = f"UPDATE players SET {set_clause} WHERE player_id =%s"
+
                 conn.execute(query, values)
-            updated_count += 1
+                updated_count += 1
+                # print(changed_data, player['player_id'], player['first_name'])
 
-        else:
-            unchanged_count += 1
+            else:
+                unchanged_count += 1
 
     print(f"New Players: {inserted_count}, Updated: {updated_count}, Unchanged: {unchanged_count}")
 
 
-def verify_player_exists(player_detail) -> Tuple[ActionType, Optional[dict]]:
+def verify_player_exists(conn, player_detail) -> Tuple[ActionType, Optional[dict]]:
 
-    connection = db_connection()
+    # connection = db_connection()
     player_id = player_detail['player_id']
+    hash_query = """SELECT hash_value FROM players WHERE player_id =%s"""
+    full_query = """SELECT * FROM players WHERE player_id =%s"""
 
-    # Check if the player data exists in system
-    query = """SELECT * FROM players WHERE player_id =%s"""
-    with connection as conn:
-        with conn.cursor(row_factory=dict_row) as cursor:
-            record = cursor.execute(query, (player_id,)).fetchone()
+    with conn.cursor(row_factory=dict_row) as cursor:
+        record = cursor.execute(hash_query, (player_id,)).fetchone()
 
-    if record is None:
-        return ActionType.CREATE, None
-    changed_values = {}
+        if record is None:
+            return ActionType.CREATE, None
 
-    for key, value in player_detail.items():
-        if value != record.get(key):
-            changed_values[key] = value
-    if changed_values:
+        if player_detail['hash_value'] == record['hash_value']:
+            return ActionType.NO_ACTION, None
+
+        record = cursor.execute(full_query, (player_id,)).fetchone()
+
+        changed_values = {}
+
+        for key, value in player_detail.items():
+            # print(key, value, record.get(key))
+            if value != record.get(key):
+                print(key, value, record.get(key))
+                changed_values[key] = value
+
         return ActionType.UPDATE, changed_values
-
-    return ActionType.NO_ACTION, None
 
 
 def get_player_stats_by_gw():
@@ -213,12 +239,14 @@ def verify_player_gw_exists(player_data) -> Tuple[ActionType, Optional[dict]]:
 
 if __name__ == "__main__":
     try:
+        start_time = datetime.now()
         if get_players():
-            print("Successfully loaded players from remote.")
-        if get_player_stats_by_gw():
-            print("Successfully loaded individual gw data.")
+            print("Successfully loaded players.")
+        # if get_player_stats_by_gw():
+        #     print("Successfully loaded individual gw data.")
         print("Scripts executed!!!")
-
+        end_time = datetime.now()
+        print(f"Script execution time: " + str(end_time - start_time))
     except Exception as e:
         print(e)
 

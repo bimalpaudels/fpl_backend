@@ -1,3 +1,7 @@
+import hashlib
+import json
+
+
 def player_position(key: int):
     positions = {
         1: "GK",
@@ -32,3 +36,13 @@ def get_team(key: int):
         20: "WOL",
     }
     return teams.get(key)
+
+
+def calculate_hash(record: dict) -> str:
+    """
+    Calculate hash of the given player record and return it as a string
+    :param record:
+    :return: str
+    """
+    record_string = json.dumps(record, sort_keys=True)
+    return hashlib.sha256(record_string.encode('utf-8')).hexdigest()
