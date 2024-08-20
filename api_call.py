@@ -72,15 +72,16 @@ def get_players():
     # Check hash with cache
     filtered_players_data = validated_required_attributes(players)
 
-    players_hash_key = "players:hash"
-    cache_hash = r.get(players_hash_key)
-    if cache_hash is not None:
-        cache_hash = cache_hash.decode('utf-8')
-    latest_data_hash = calculate_hash(filtered_players_data)
-    if cache_hash == latest_data_hash:
+    remote_players_hash = calculate_hash(filtered_players_data)
+
+    query = "SELECT value FROM cache_store WHERE key ='players:hash'"
+    with db_connection() as conn:
+        with conn.cursor(row_factory=dict_row) as cursor:
+            results = cursor.execute(query).fetchone()
+    if remote_players_hash == results.get('value'):
         print("Nothing to change")
         return
-    r.setex(players_hash_key, 60, latest_data_hash)
+    print(remote_players_hash, results.get('value'))
     upsert_players(filtered_players_data)
     return True
 
