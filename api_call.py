@@ -83,6 +83,9 @@ def get_players():
         return
     print(remote_players_hash, results.get('value'))
     upsert_players(filtered_players_data)
+    query = """UPDATE cache_store SET value = %s WHERE key ='players:hash'"""
+    with db_connection() as conn:
+        conn.execute(query, (remote_players_hash,))
     return True
 
 
