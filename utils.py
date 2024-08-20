@@ -1,4 +1,5 @@
 from players.schemas import PlayerCompleteSchema, PlayersDetailSchema
+from players.utils import calculate_hash
 
 
 def validated_required_attributes(players_data):
@@ -34,10 +35,29 @@ def rename_keys(player):
     return player
 
 
-def filtered_players_details(history_data):
-    filtered_players = [
-        PlayersDetailSchema(**player).model_dump() for player in history_data
-    ]
+def filtered_players_details(history_data, redis):
+    filtered_players = []
+    for player_data in history_data:
+        validated_player_data = PlayersDetailSchema(**player_data).model_dump()
+        player_id = validated_player_data["player_id"]
+        game_week = validated_player_data["game_week"]
+        detail_hash = calculate_hash(validated_player_data)
+        # Use player_id and game_week for combined field key for hashmap.
+        player_detail_key = "player_detail"
+        player_detail_field = f"{player_id}:{game_week}"
+
+        cached_hash = redis.hget(player_detail_key, player_detail_field)
+        if cached_hash is not None:
+            cached_hash = cached_hash.decode("utf-8")
+
+        if cached_hash == detail_hash:
+            print("Skipping this..")
+            continue
+        filtered_players.append(validated_player_data)
+        redis.hset(player_detail_key, player_detail_field, detail_hash)
+    # filtered_players = [
+    #     PlayersDetailSchema(**player).model_dump() for player in history_data
+    # ]
     return filtered_players
 
 
@@ -58,7 +78,7 @@ def player_history_mock_data(player_id):
             "assists": 0,
             "total_points": 10,
             "minutes": 90,
-            "clean_sheet": 1,
+            "clean_sheets": 1,
             "goals_conceded": 0,
             "own_goals": 0,
             "penalties_saved": 0,
@@ -84,7 +104,7 @@ def player_history_mock_data(player_id):
             "assists": 1,
             "total_points": 16,
             "minutes": 70,
-            "clean_sheet": 0,
+            "clean_sheets": 0,
             "goals_conceded": 1,
             "own_goals": 0,
             "penalties_saved": 0,
@@ -110,7 +130,7 @@ def player_history_mock_data(player_id):
             "assists": 1,
             "total_points": 16,
             "minutes": 70,
-            "clean_sheet": 0,
+            "clean_sheets": 0,
             "goals_conceded": 1,
             "own_goals": 0,
             "penalties_saved": 0,

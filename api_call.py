@@ -155,7 +155,7 @@ def verify_player_exists(conn, player_detail) -> Tuple[ActionType, Optional[dict
 def get_player_stats_by_gw():
     """
     Stats of every player in a particular game week. First need to get all players ID and then loop through the player
-    detail api. First get the history data. Currently not available so mocking it in utils.
+    detail api.
     :return:
     """
     query = """SELECT json_agg(player_id) FROM players"""
@@ -170,10 +170,10 @@ def get_player_stats_by_gw():
 
             # data and  player_ids will be used in the future
             # history = player_history_mock_data(player_id)
-            filtered_player_data = filtered_players_details(data)
+            filtered_player_data = filtered_players_details(data, r)
             upsert_player_stats_by_gw(filtered_player_data)
             time.sleep(1)
-        print("Waiting 60 seconds...")
+        print("Waiting 5 seconds...")
         time.sleep(60)
     return True
 
@@ -184,42 +184,41 @@ def upsert_player_stats_by_gw(player_data):
     unchanged_count = 0
     player = ""
 
-    for data in player_data:
-        player = data['player_id']
-        action_type, changed_data = verify_player_gw_exists(data)
+    with pool.connection() as conn:
+        for data in player_data:
+            player = data['player_id']
+            action_type, changed_data = verify_player_gw_exists(conn, data)
 
-        if action_type == ActionType.CREATE:
-            columns = ', '.join(data.keys())
-            placeholders = ', '.join(['%s'] * len(data))
-            values = tuple(data.values())
-            query = f"INSERT INTO players_detail ({columns})VALUES ({placeholders})"
-            with db_connection() as conn:
+            if action_type == ActionType.CREATE:
+                columns = ', '.join(data.keys())
+                placeholders = ', '.join(['%s'] * len(data))
+                values = tuple(data.values())
+                query = f"INSERT INTO players_detail ({columns})VALUES ({placeholders})"
                 conn.execute(query, values)
-            inserted_count += 1
+                inserted_count += 1
 
-        elif action_type == ActionType.UPDATE:
-            set_clause = ", ".join(f"{key} = %s" for key in changed_data.keys())
-            values = list(changed_data.values()) + [data['player_id']] + [data['game_week']]
-            query = f"UPDATE players_detail SET {set_clause} WHERE player_id =%s AND game_week =%s"
-            with db_connection() as conn:
+            elif action_type == ActionType.UPDATE:
+                set_clause = ", ".join(f"{key} = %s" for key in changed_data.keys())
+                values = list(changed_data.values()) + [data['player_id']] + [data['game_week']]
+                query = f"UPDATE players_detail SET {set_clause} WHERE player_id =%s AND game_week =%s"
                 conn.execute(query, values)
-            updated_count += 1
+                updated_count += 1
 
-        else:
-            unchanged_count += 1
+            else:
+                unchanged_count += 1
 
     if inserted_count != 0 or updated_count != 0:
         print(f"{player} -> New gw: {inserted_count}, updated: {updated_count}, unchanged: {unchanged_count}")
 
 
-def verify_player_gw_exists(player_data) -> Tuple[ActionType, Optional[dict]]:
+def verify_player_gw_exists(conn, player_data) -> Tuple[ActionType, Optional[dict]]:
     player_id = player_data.get("player_id")
     game_week = player_data.get("game_week")
 
     query = """SELECT * FROM players_detail WHERE player_id =%s AND game_week =%s"""
-    with db_connection() as conn:
-        with conn.cursor(row_factory=dict_row) as cursor:
-            data = cursor.execute(query, (player_id, game_week)).fetchone()
+
+    with conn.cursor(row_factory=dict_row) as cursor:
+        data = cursor.execute(query, (player_id, game_week)).fetchone()
 
     if data is None:
         return ActionType.CREATE, None
@@ -240,10 +239,10 @@ def verify_player_gw_exists(player_data) -> Tuple[ActionType, Optional[dict]]:
 if __name__ == "__main__":
     try:
         start_time = datetime.now()
-        if get_players():
-            print("Successfully loaded players.")
-        # if get_player_stats_by_gw():
-        #     print("Successfully loaded individual gw data.")
+        # if get_players():
+        #     print("Successfully loaded players.")
+        if get_player_stats_by_gw():
+            print("Successfully loaded individual gw data.")
         print("Scripts executed!!!")
         end_time = datetime.now()
         print(f"Script execution time: " + str(end_time - start_time))
