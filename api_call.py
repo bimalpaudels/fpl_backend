@@ -1,7 +1,7 @@
 import enum
 import time
 from datetime import datetime
-
+import os
 import redis
 import requests
 from db_config import db_connection, pool
@@ -14,9 +14,9 @@ from players.utils import calculate_hash
 BASE_URL = 'https://fantasy.premierleague.com/api/'
 TRACKED_FIELDS = ['now_cost', 'second_name']
 
-
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 # Redis Connection
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.Redis.from_url(REDIS_URL)
 
 
 class ActionType(enum.Enum):

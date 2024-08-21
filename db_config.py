@@ -2,7 +2,7 @@ import psycopg
 import os
 from psycopg_pool import ConnectionPool
 
-DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/fpl_db"
+DATABASE_URL = os.getenv('DATABASE_URL', "postgresql+psycopg://postgres:postgres@localhost:5432/fpl_db")
 
 
 def db_connection():
