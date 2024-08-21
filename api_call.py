@@ -1,12 +1,11 @@
 import enum
 import time
-import json
 from datetime import datetime
 
 import redis
 import requests
 from db_config import db_connection, pool
-from utils import validated_required_attributes, filtered_players_details, player_history_mock_data
+from utils import validated_required_attributes, filtered_players_details
 from typing import Tuple, Optional
 from psycopg.rows import dict_row
 from players.utils import calculate_hash
@@ -59,7 +58,6 @@ def call_player_detail_api(player_id: int):
         return player_history
     elif response.status_code == 429:
         print('Too many request')
-        breakpoint()
         return
 
 
@@ -152,30 +150,21 @@ def verify_player_exists(conn, player_detail) -> Tuple[ActionType, Optional[dict
         return ActionType.UPDATE, changed_values
 
 
-def get_player_stats_by_gw():
+def get_player_stats_by_gw(player_ids: list, split: int = 50):
     """
     Stats of every player in a particular game week. First need to get all players ID and then loop through the player
     detail api.
     :return:
     """
-    query = """SELECT json_agg(player_id) FROM players"""
-
-    with db_connection() as conn:
-        results = conn.execute(query).fetchone()
-    player_ids = results[0]
-    for i in range(0, len(player_ids),  60):
-        chunk = player_ids[i:i+60]
-        for player_id in chunk:
-            data = call_player_detail_api(player_id)
-
-            # data and  player_ids will be used in the future
-            # history = player_history_mock_data(player_id)
-            filtered_player_data = filtered_players_details(data, r)
-            upsert_player_stats_by_gw(filtered_player_data)
-            time.sleep(1)
-        print("Waiting 5 seconds...")
-        time.sleep(60)
-    return True
+    count = 0
+    for player_id in player_ids:
+        data = call_player_detail_api(player_id)
+        filtered_player_data = filtered_players_details(data, r)
+        upsert_player_stats_by_gw(filtered_player_data)
+        count += 1
+        if count == len(player_ids):
+            return
+        time.sleep(60 if (count % split == 0) else 1)
 
 
 def upsert_player_stats_by_gw(player_data):
@@ -250,3 +239,26 @@ if __name__ == "__main__":
         print(e)
 
 
+def split_players_by_importance(importance: int = 1):
+    """
+    Gets all the player ids and splits and returns them based on importance.
+    :param importance: 1: High, 2: Medium, 3: Low
+    :return: list of player_ids
+    """
+    # 1. Query to the database for top 100
+    query = """SELECT player_id FROM players WHERE minutes > 0 ORDER BY total_points DESC"""
+
+    with db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            all_players = cursor.fetchall()
+            all_players_ids = [row[0] for row in all_players]
+
+    if importance == 1:
+        return all_players_ids[:100]
+    elif importance == 2:
+        return all_players_ids[100:200]
+    elif importance == 3:
+        return all_players_ids[100:]
+    else:
+        return all_players_ids
