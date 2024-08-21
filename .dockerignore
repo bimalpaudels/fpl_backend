@@ -1,0 +1,11 @@
+.venv
+
+.gitignore
+
+.git/
+
+# Exclude other files not needed in the container
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

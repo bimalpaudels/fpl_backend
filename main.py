@@ -32,7 +32,7 @@ def get_db():
 
 @app.get("/")
 async def root():
-    return {"Root": "API"}
+    return {"Root": "ACPG"}
 
 
 @app.get("/players", response_model=list[PlayerListResponseSchema])
