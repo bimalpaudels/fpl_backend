@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-dep
+  labels:
+    app: redis-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-dep
+  template:
+    metadata:
+      name: redis-dep
+      labels:
+        app: redis-dep
+    spec:
+      containers:
+        - name: redis-dep
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+      

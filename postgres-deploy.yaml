@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-dep
+  labels:
+    app: postgres-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-dep
+  template:
+    metadata:
+      name: postgres-dep
+      labels:
+        app: postgres-dep
+    spec:
+      containers:
+        - name: postgres-dep
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_DB
+              value: fpl_db
+          ports:
+            - containerPort: 5432
+      

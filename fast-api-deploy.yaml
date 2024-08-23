@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fpl-backend
+  labels:
+    app: fpl-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fpl-backend
+  template:
+    metadata:
+      name: fpl-backend
+      labels:
+        app: fpl-backend
+    spec:
+      containers:
+        - name: fpl-backend
+          image: fpl-backend-web:latest
+          env:
+            - name: DATABASE_URL
+              value: postgresql+psycopg://postgres:postgres@db:5432/fpl_db
+            - name: REDIS_URL
+              value: redis://redis:6379/0
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      
