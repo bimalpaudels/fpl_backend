@@ -9,9 +9,10 @@ services:
       - db
 
     environment:
-      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/fpl_db
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/fpl_db
       REDIS_URL: redis://redis:6379/0
       DB_HOST: db
+      ALCHEMY_DB_URL: postgresql+psycopg://postgres:postgres@db:5432/fpl_db
 
     volumes:
       - .:/code
