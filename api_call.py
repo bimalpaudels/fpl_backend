@@ -228,10 +228,10 @@ def verify_player_gw_exists(conn, player_data) -> Tuple[ActionType, Optional[dic
 if __name__ == "__main__":
     try:
         start_time = datetime.now()
-        # if get_players():
-        #     print("Successfully loaded players.")
-        if get_player_stats_by_gw():
-            print("Successfully loaded individual gw data.")
+        if get_players():
+            print("Successfully loaded players.")
+        # if get_player_stats_by_gw():
+        #     print("Successfully loaded individual gw data.")
         print("Scripts executed!!!")
         end_time = datetime.now()
         print(f"Script execution time: " + str(end_time - start_time))
