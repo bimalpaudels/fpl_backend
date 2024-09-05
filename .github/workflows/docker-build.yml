@@ -32,7 +32,7 @@ jobs:
         run: echo "${{ secrets.KUBECONFIG_SECRET }}" > /tmp/kubeconfig
       -
         name: Deploy to Kubernetes
-        run: kubectl --kubeconfig=/tmp/kubeconfig apply -f ./kubernetes_config
+        run: kubectl --kubeconfig=/tmp/kubeconfig apply -f ./k8s
       -
         name: Clean up temporary kubeconfig file
         run: rm /tmp/kubeconfig
