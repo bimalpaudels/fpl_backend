@@ -10,7 +10,7 @@ spec:
         spec:
           containers:
             - name: bootstrap-call
-              image: fpl-backend:v3
+              image: bimalpaudel/fpl-backend:latest
               imagePullPolicy: IfNotPresent
               command:
                 - /bin/sh
