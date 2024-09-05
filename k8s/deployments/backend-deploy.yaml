@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: fpl-backend
-          image: fpl-backend:v3
+          image: bimalpaudel/fpl-exp:latest
           env:
             - name: DATABASE_URL
               value: postgresql://postgres:postgres@postgres-service:5432/fpl_db
